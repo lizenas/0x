@@ -5,12 +5,12 @@ Usage: 0x [options] \<value\>
 
 Options:
 ```
--h  --help    Display help message and exit
--q --quiet		Diables printing of input value, removes type prefix from converted types
--D --dec		Disable printing of decimal value
--H --no-hex		Disable printing of hexadecimal value
--B --no-bin		Disable printing of binary value
--O --no-oct		Disable printing of octal value
+-h  --help     Display help message and exit
+-q  --quiet    Diables printing of input value, removes type prefix from converted types
+-D  --dec      Disable printing of decimal value
+-H  --no-hex   Disable printing of hexadecimal value
+-B  --no-bin   Disable printing of binary value
+-O  --no-oct   Disable printing of octal value
 ```
 Valid values:
 
