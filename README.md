@@ -44,7 +44,7 @@ Octal:   07356
  
  ```0x 0775 36``` outputs:
  ```
- Input:   0c777
+ Input:   0777
 Decimal: 511
 Hex:     0x1FF
 Binary:  0b111111111
