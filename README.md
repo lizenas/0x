@@ -1,5 +1,5 @@
 # 0x
-Converts between hex, binary, octal, and decimal. Requires bash 4.0+"
+Converts between hex, binary, octal, and decimal. Requires bash 4.0+
 
 Usage: 0x [options] \<value\>
 
