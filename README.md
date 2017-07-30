@@ -16,7 +16,7 @@ Valid values:
 
  - Hex values start with 0x, case insensitive (E.g. 0xED, 0xed)
  - Binary values start with 0b (E.g. 0b1010, 0B1010)
- - Octal values start with 0c (E.g. 0c555, 0C555)
+ - Octal values start with 0 (E.g. 0555, 0777)
  - Decimal values are positive integers that do not fit the above parameters (E.g. 76, 52)
 
  Examples:
@@ -34,15 +34,15 @@ Octal:   006
 Input:   0xAE6
 Decimal: 2790
 Binary:  0b101011100110
-Octal:   5346
+Octal:   05346
 
 Input:   0xeee
 Decimal: 3822
 Binary:  0b111011101110
-Octal:   7356
+Octal:   07356
  ```
  
- ```0x 0c777 36``` outputs:
+ ```0x 0775 36``` outputs:
  ```
  Input:   0c777
 Decimal: 511

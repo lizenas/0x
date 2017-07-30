@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/local/bin/bash
 
 print_help() {
 	echo "Converts between hex, binary, octal, and decimal. Requires bash 4.0+"
@@ -13,7 +13,7 @@ print_help() {
 	echo "Valid values:"
 	echo " - Hex values start with 0x, case insensitive (E.g. 0xED, 0xed)"
 	echo " - Binary values start with 0b (E.g. 0b1010, 0B1010)"	
-	echo " - Octal values start with 0c (E.g. 0c555, 0C555)"
+	echo " - Octal values start with 0 (E.g. 0555, 0777)"
 	echo " - Decimal values are positive integers that do not fit the above parameters (E.g. 76, 52)"
 }
 
@@ -49,13 +49,13 @@ while [ "$#" -gt 0 ]; do
 			PROCT=false
 			;;
 		*)
-			args_no_options+=("$1") # +=("$1") is different from +="$1". +=("$1") appends a new value to the array.
+			args_no_options+=("$1") # +=("$1") is different from +="$1". +=("$1") appends a new value to the array
 			;;
 	esac
 	shift
 done
 
-#bash functions behave like mini-programs and have their own $@, $#, $1, etc. seperate from the main script.
+#bash functions behave like mini-programs and have their own $@, $#, $1, etc. seperate from the main script
 #$1 = number to print
 print_input() {
 	
@@ -69,7 +69,7 @@ print_input() {
 # $2 = base of $1
 print_dec() {
 	if [ $PRDEC = true ]; then
-		#assigning ibase before obase causes obase to be read in the base assigned by ibase, causing incorrect values to be outputted. assign obase before ibase.
+		#assigning ibase before obase causes obase to be read in the base assigned by ibase, causing incorrect values to be outputted. assign obase before ibase
 		decnum="$(echo "obase=10; ibase=$2; $1" | bc)"
 		if [ $QUIET = true ]; then
 			echo "$decnum"
@@ -116,17 +116,11 @@ print_oct() {
 			else
 				echo "Octal:   00$octnum"
 			fi
-		elif [ "${#octnum}" -eq 2 ]; then
+		elif [ "${#octnum}" -ge 2 ]; then
 			if [ $QUIET = true ]; then
 				echo "0$octnum"
 			else
 				echo "Octal:   0$octnum"
-			fi
-		else
-			if [ $QUIET = true ]; then
-				echo "$octnum"
-			else
-				echo "Octal:   $octnum"
 			fi
 		fi
 	fi
@@ -153,16 +147,16 @@ for num in "${args_no_options[@]}"; do
 		print_hex "$num" "2"
 		print_oct "$num" "2"
 
-	#regex: $num starts with a 0 <[0]>, then either a c or a C <[cC]>, then any amount <+> of valid octal digits <[0-7]>, but not no octal digits <+>
-	elif [[ "$num" =~ ^[0][cC][0-7]+$ ]]; then #octal
+	#regex: $num starts with a 0 <[0]>, then any amount <+> of valid octal digits <[0-7]>, but not no octal digits <+>
+	elif [[ "$num" =~ ^[0][0-7]+$ ]]; then #octal
 		print_input "$num"
 		num="${num^^}"
 		num="${num#*0C}"
 		print_dec "$num" "8"
 		print_hex "$num" "8"
 		print_bin "$num" "8"
-	#regex: $num contains any amount <+> of valid decimal digits<[0-9]>, but not no decimal digits <+>
-	elif [[ "$num" =~ ^[0-9]+$ ]]; then #decimal
+	#regex: $num contains any amount <+> of valid decimal digits<[0-9]>, but not no decimal digits <+>, or any number between 1 and 9 <[1-9]>
+	elif [[ "$num" =~ ^[1-9][0-9]+$ ]] || [[ "$num" =~ ^[1-9]$ ]]; then #decimal
 		print_input "$num"
 		print_hex "$num" "16"
 		print_bin "$num" "16"	
