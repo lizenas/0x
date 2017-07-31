@@ -17,48 +17,9 @@ print_help() {
 	echo " - Decimal values are positive integers that do not fit the above parameters (E.g. 76, 52)"
 }
 
-args_no_options=()
-QUIET=false
-PRDEC=true
-PRHEX=true
-PRBIN=true
-PROCT=true
-
-#handle arguments
-while [ "$#" -gt 0 ]; do
-	case "$1" in
-		#adding a shift after every argument will make it skip over args. don't do that
-		#adding a $ before the variables in each case will cause bash to evaluate and not assign the variables
-		'-h'|'--help')
-			print_help
-			exit 0
-			;;
-		'-q'|'--quiet')
-			QUIET=true
-			;;
-		'-D'|'--no-dec')
-			PRDEC=false
-			;;
-		'-H'|'--no-hex')
-			PRHEX=false
-			;;
-		'-B'|'--no-bin')
-			PRBIN=false
-			;;
-		'-O'|'--no-oct')
-			PROCT=false
-			;;
-		*)
-			args_no_options+=("$1") # +=("$1") is different from +="$1". +=("$1") appends a new value to the array
-			;;
-	esac
-	shift
-done
-
 #bash functions behave like mini-programs and have their own $@, $#, $1, etc. seperate from the main script
 #$1 = number to print
 print_input() {
-	
 	if [ $QUIET = false ]; then
 		echo
 		echo "Input:   $1"
@@ -126,42 +87,86 @@ print_oct() {
 	fi
 }
 
-#loop through all args and parse accordingly
-for num in "${args_no_options[@]}"; do
-	#regex: $num starts w/ a 0 <[0]>, then either an x or an X <[xX]>, then any amount <+> of valid hex digits [[:xdigit:]], but not no hex digits <+>
-	if [[ "$num" =~ ^[0][xX][[:xdigit:]]+$ ]]; then #hexadecimal
-		print_input "$num"
-		#${num^^} only works in bash 4+
-		num="${num^^}"
-		num="${num#*0X}"
-		print_dec "$num" "16"
-		print_bin "$num" "16"
-		print_oct "$num" "16"
 
-	#regex: $num starts with a 0 <[0]>, then either a b or a B [bB], then any amount <+> of 1's or 0's <[01]>, but not no 1's or 0's <+>
-	elif [[ "$num" =~ ^[0][bB][01]+$ ]]; then #binary
-		print_input "$num"
-		num="${num^^}"
-		num="${num#*0B}"
-		print_dec "$num" "2"
-		print_hex "$num" "2"
-		print_oct "$num" "2"
+#args are the $@ array, not quoted so it expands into multiple args and not just one big string
+main() {
+	args_no_options=()
+	QUIET=false
+	PRDEC=true
+	PRHEX=true
+	PRBIN=true
+	PROCT=true
 
-	#regex: $num starts with a 0 <[0]>, then any amount <+> of valid octal digits <[0-7]>, but not no octal digits <+>
-	elif [[ "$num" =~ ^[0][0-7]+$ ]]; then #octal
-		print_input "$num"
-		num="${num^^}"
-		num="${num#*0C}"
-		print_dec "$num" "8"
-		print_hex "$num" "8"
-		print_bin "$num" "8"
-	#regex: $num contains any amount <+> of valid decimal digits<[0-9]>, but not no decimal digits <+>, or any number between 1 and 9 <[1-9]>
-	elif [[ "$num" =~ ^[1-9][0-9]+$ ]] || [[ "$num" =~ ^[1-9]$ ]]; then #decimal
-		print_input "$num"
-		print_hex "$num" "16"
-		print_bin "$num" "16"	
-		print_oct "$num" "16"
-	else
-		echo "Argument(s) do not match any supported number format or flag."
-	fi
-done
+	#handle arguments
+	while [ "$#" -gt 0 ]; do
+		case "$1" in
+			#adding a shift after every argument will make it skip over args. don't do that
+			#adding a $ before the variables in each case will cause bash to evaluate and not assign the variables
+			'-h'|'--help')
+				print_help
+				exit 0
+				;;
+			'-q'|'--quiet')
+				QUIET=true
+				;;
+			'-D'|'--no-dec')
+				PRDEC=false
+				;;
+			'-H'|'--no-hex')
+				PRHEX=false
+				;;
+			'-B'|'--no-bin')
+				PRBIN=false
+				;;
+			'-O'|'--no-oct')
+				PROCT=false
+				;;
+			*)
+				args_no_options+=("$1") # +=("$1") is different from +="$1". +=("$1") appends a new value to the array
+				;;
+		esac
+		shift
+	done
+
+	#loop through all args and parse accordingly
+	for num in "${args_no_options[@]}"; do
+		#regex: $num starts w/ a 0 <[0]>, then either an x or an X <[xX]>, then any amount <+> of valid hex digits [[:xdigit:]], but not no hex digits <+>
+		if [[ "$num" =~ ^[0][xX][[:xdigit:]]+$ ]]; then #hexadecimal
+			print_input "$num"
+			#${num^^} only works in bash 4+
+			num="${num^^}"
+			num="${num#*0X}"
+			print_dec "$num" "16"
+			print_bin "$num" "16"
+			print_oct "$num" "16"
+
+		#regex: $num starts with a 0 <[0]>, then either a b or a B [bB], then any amount <+> of 1's or 0's <[01]>, but not no 1's or 0's <+>
+		elif [[ "$num" =~ ^[0][bB][01]+$ ]]; then #binary
+			print_input "$num"
+			num="${num^^}"
+			num="${num#*0B}"
+			print_dec "$num" "2"
+			print_hex "$num" "2"
+			print_oct "$num" "2"
+
+		#regex: $num starts with a 0 <[0]>, then any amount <+> of valid octal digits <[0-7]>, but not no octal digits <+>
+		elif [[ "$num" =~ ^[0][0-7]+$ ]]; then #octal
+			print_input "$num"
+			num="${num^^}"
+			num="${num#*0C}"
+			print_dec "$num" "8"
+			print_hex "$num" "8"
+			print_bin "$num" "8"
+		#regex: $num contains any amount <+> of valid decimal digits<[0-9]>, but not no decimal digits <+>, or any number between 1 and 9 <[1-9]>
+		elif [[ "$num" =~ ^[1-9][0-9]+$ ]] || [[ "$num" =~ ^[1-9]$ ]]; then #decimal
+			print_input "$num"
+			print_hex "$num" "16"
+			print_bin "$num" "16"	
+			print_oct "$num" "16"
+		else
+			echo "Argument(s) do not match any supported number format or flag."
+		fi
+	done
+}
+
+main $@
