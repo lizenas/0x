@@ -1,5 +1,12 @@
 #!/usr/local/bin/bash
 
+#global flag variables
+QUIET=false
+PRDEC=true
+PRHEX=true
+PRBIN=true
+PROCT=true
+
 print_help() {
 	echo "Converts between hex, binary, octal, and decimal. Requires bash 4.0+"
 	echo "Usage: 0x [options] <value>"
@@ -90,13 +97,8 @@ print_oct() {
 
 #args are the $@ array, not quoted so it expands into multiple args and not just one big string
 main() {
+	#array for non-flag arguments
 	args_no_options=()
-	QUIET=false
-	PRDEC=true
-	PRHEX=true
-	PRBIN=true
-	PROCT=true
-
 	#handle arguments
 	while [ "$#" -gt 0 ]; do
 		case "$1" in
