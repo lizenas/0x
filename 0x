@@ -28,7 +28,6 @@ print_help() {
 
 print_version() {
 	echo "$VERSION"
-	exit 0
 }
 
 #bash functions behave like mini-programs and have their own $@, $#, $1, etc. seperate from the main script
@@ -115,6 +114,9 @@ main() {
 				print_help
 				exit 0
 				;;
+			'-v'|'--version')
+				print_version
+				exit 0
 			'-q'|'--quiet')
 				QUIET=true
 				;;
