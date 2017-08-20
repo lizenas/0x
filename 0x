@@ -74,7 +74,7 @@ print_bin() {
 		if [ $QUIET = true ]; then
 			echo "0b$binnum"
 		else
-			echo "Octal:   0b$binnum"
+			echo "Binary:  0b$binnum"
 		fi
 	fi
 }
