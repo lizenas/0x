@@ -1,0 +1,184 @@
+#!/usr/local/bin/bash
+
+#global variables
+VERSION="1.0.1"
+QUIET=false
+PRDEC=true
+PRHEX=true
+PRBIN=true
+PROCT=true
+
+print_help() {
+	echo "Converts between hex, binary, octal, and decimal. Requires bash 4.0+"
+	echo "Usage: Ox [options] <value>"
+	echo "  -h --help		Display help message and exit"
+	echo "  -v --version		Display version and exit"
+	echo "  -q --quiet		Diables printing of input value, removes type prefix from converted types"
+	echo "  -D --dec		Disable printing of decimal value"
+	echo "  -H --no-hex		Disable printing of hexadecimal value"
+	echo "  -B --no-bin		Disable printing of binary value"
+	echo "  -O --no-oct		Disable printing of octal value"
+	echo
+	echo "Valid values:"
+	echo " - Hex values start with 0x, case insensitive (E.g. 0xED, 0xed)"
+	echo " - Binary values start with 0b (E.g. 0b1010, 0B1010)"	
+	echo " - Octal values start with 0 (E.g. 0555, 0777)"
+	echo " - Decimal values are positive integers that do not fit the above parameters (E.g. 76, 52)"
+}
+
+print_version() {
+	echo "$VERSION"
+}
+
+#bash functions behave like mini-programs and have their own $@, $#, $1, etc. seperate from the main script
+#$1 = number to print
+print_input() {
+	if [ $QUIET = false ]; then
+		echo
+		echo "Input:   $1"
+	fi
+}
+
+# $1 = number to convert
+# $2 = base of $1
+print_dec() {
+	if [ $PRDEC = true ]; then
+		#assigning ibase before obase causes obase to be read in the base assigned by ibase, causing incorrect values to be outputted. assign obase before ibase
+		decnum="$(echo "obase=10; ibase=$2; $1" | bc)"
+		if [ $QUIET = true ]; then
+			echo "$decnum"
+		else
+			echo "Decimal: $decnum"
+		fi
+	fi
+}
+
+# $1 = number to convert
+# $2 = base of $1
+print_hex() {
+	if [ $PRHEX = true ]; then
+		hexnum="$(echo "obase=16; ibase=$2; $1" | bc)"
+		if [ $QUIET = true ]; then
+			echo "0x$hexnum"
+		else
+			echo "Hex:     0x$hexnum"
+		fi
+	fi
+}
+
+# $1 = number to convert
+# $2 = base of $1
+print_bin() {
+	if [ $PRBIN = true ]; then
+		binnum="$(echo "obase=2; ibase=$2; $1" | bc)"
+		if [ $QUIET = true ]; then
+			echo "0b$binnum"
+		else
+			echo "Binary:  0b$binnum"
+		fi
+	fi
+}
+
+# $1 = number to convert
+# $2 = base of $1
+print_oct() {
+	if [ $PROCT = true ]; then
+		octnum="$(echo "obase=8; ibase=$2; $1" | bc)"
+		if [ "${#octnum}" -eq 1 ]; then
+			if [ $QUIET = true ]; then
+				echo "00$octnum"
+			else
+				echo "Octal:   00$octnum"
+			fi
+		elif [ "${#octnum}" -ge 2 ]; then
+			if [ $QUIET = true ]; then
+				echo "0$octnum"
+			else
+				echo "Octal:   0$octnum"
+			fi
+		fi
+	fi
+}
+
+
+#args are the $@ array, not quoted so it expands into multiple args and not just one big string
+main() {
+	#array for non-flag arguments
+	args_no_options=()
+	#handle arguments
+	while [ "$#" -gt 0 ]; do
+		case "$1" in
+			#adding a shift after every argument will make it skip over args. don't do that
+			#adding a $ before the variables in each case will cause bash to evaluate and not assign the variables
+			'-h'|'--help')
+				print_help
+				exit 0
+				;;
+			'-v'|'--version')
+				print_version
+				exit 0
+				;;
+			'-q'|'--quiet')
+				QUIET=true
+				;;
+			'-D'|'--no-dec')
+				PRDEC=false
+				;;
+			'-H'|'--no-hex')
+				PRHEX=false
+				;;
+			'-B'|'--no-bin')
+				PRBIN=false
+				;;
+			'-O'|'--no-oct')
+				PROCT=false
+				;;
+			*)
+				args_no_options+=("$1") # +=("$1") is different from +="$1". +=("$1") appends a new value to the array
+				;;
+		esac
+		shift
+	done
+
+	#loop through all args and parse accordingly
+	for num in "${args_no_options[@]}"; do
+		#regex: $num starts w/ a 0 <[0]>, then either an x or an X <[xX]>, then any amount <+> of valid hex digits [[:xdigit:]], but not no hex digits <+>
+		if [[ "$num" =~ ^[0][xX][[:xdigit:]]+$ ]]; then #hexadecimal
+			print_input "$num"
+			#${num^^} only works in bash 4+
+			num="${num^^}"
+			num="${num#*0X}"
+			print_dec "$num" "16"
+			print_bin "$num" "16"
+			print_oct "$num" "16"
+
+		#regex: $num starts with a 0 <[0]>, then either a b or a B [bB], then any amount <+> of 1's or 0's <[01]>, but not no 1's or 0's <+>
+		elif [[ "$num" =~ ^[0][bB][01]+$ ]]; then #binary
+			print_input "$num"
+			num="${num^^}"
+			num="${num#*0B}"
+			print_dec "$num" "2"
+			print_hex "$num" "2"
+			print_oct "$num" "2"
+
+		#regex: $num starts with a 0 <[0]>, then any amount <+> of valid octal digits <[0-7]>, but not no octal digits <+>
+		elif [[ "$num" =~ ^[0][0-7]+$ ]]; then #octal
+			print_input "$num"
+			num="${num^^}"
+			num="${num#*0C}"
+			print_dec "$num" "8"
+			print_hex "$num" "8"
+			print_bin "$num" "8"
+		#regex: $num contains any amount <+> of valid decimal digits<[0-9]>, but not no decimal digits <+>, or any number between 1 and 9 <[1-9]>
+		elif [[ "$num" =~ ^[1-9][0-9]+$ ]] || [[ "$num" =~ ^[1-9]$ ]]; then #decimal
+			print_input "$num"
+			print_hex "$num" "16"
+			print_bin "$num" "16"	
+			print_oct "$num" "16"
+		else
+			echo "Argument(s) do not match any supported number format or flag."
+		fi
+	done
+}
+
+main $@
